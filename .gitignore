@@ -1,3 +1,5 @@
-# Ignore large datasets
-/data/*.csv
+# Large archives stay local unless explicitly added
 /data/*.zip
+
+# Allow CSVs tracked via Git LFS
+!/data/*.csv
