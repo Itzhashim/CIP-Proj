@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Threat Detection Dashboard</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="page">
+    <header>
+      <h1>AI-Powered Threat Detection</h1>
+      <p class="subtitle">Run quick checks with your pre-trained models.</p>
+    </header>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-group">
+          {% for category, msg in messages %}
+            <div class="flash {{ category }}">{{ msg }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <section class="card-grid">
+      <div class="card">
+        <h2>Network Traffic Classification</h2>
+        <p>Classify traffic as Attack or Normal using the Random Forest model.</p>
+        <a class="btn" href="{{ url_for('network_route') }}">Run Network Analysis</a>
+      </div>
+      <div class="card">
+        <h2>Web Intrusion Detection</h2>
+        <p>Detect anomalies in simulated web traffic with Isolation Forest.</p>
+        <a class="btn" href="{{ url_for('wids_route') }}">Run Web Intrusion Detection</a>
+      </div>
+      <div class="card">
+        <h2>Malware File Analysis</h2>
+        <p>Upload a file to generate a malware risk report with the LSTM model.</p>
+        <a class="btn" href="{{ url_for('malware_route') }}">Analyze Malware File</a>
+      </div>
+    </section>
+  </div>
+</body>
+</html>
