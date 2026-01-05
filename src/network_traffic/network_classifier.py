@@ -102,6 +102,8 @@ class NetworkTrafficClassifier:
             
             # Convert to numeric and handle any remaining issues
             X = X.apply(pd.to_numeric, errors='coerce')
+            # Replace inf/-inf with NaN then fill
+            X = X.replace([np.inf, -np.inf], np.nan)
             X = X.fillna(0)
             
             return X, y_binary
@@ -145,23 +147,30 @@ class NetworkTrafficClassifier:
             print("\nERROR: No datasets could be loaded!")
             return {'success': False, 'model': None, 'accuracy': 0.0}
         
-        # Combine datasets
+        # Combine datasets using column union (fill missing with 0)
         print("\n[COMBINING] Merging all datasets...")
-        
-        # Get common columns
-        common_cols = set(X_combined[0].columns)
-        for X in X_combined[1:]:
-            common_cols = common_cols.intersection(set(X.columns))
-        common_cols = list(common_cols)
-        
-        print(f"[COMBINING] Using {len(common_cols)} common features")
-        
-        # Use only common columns
-        X_combined = [X[common_cols] for X in X_combined]
+
+        # Build union of all feature columns
+        all_cols = set()
+        for X in X_combined:
+            all_cols.update(X.columns)
+        all_cols = sorted(list(all_cols))
+
+        if not all_cols:
+            print("[COMBINING] ERROR: No features available after preprocessing.")
+            return {'success': False, 'model': None, 'accuracy': 0.0}
+
+        print(f"[COMBINING] Using {len(all_cols)} unified features")
+
+        # Reindex each dataset to the unified columns, filling missing with 0
+        X_combined = [X.reindex(columns=all_cols, fill_value=0) for X in X_combined]
         
         # Concatenate
         X_all = pd.concat(X_combined, axis=0, ignore_index=True)
         y_all = pd.concat(y_combined, axis=0, ignore_index=True)
+
+        # Clean any residual inf/-inf
+        X_all = X_all.replace([np.inf, -np.inf], 0)
         
         print(f"[COMBINING] Final combined shape: {X_all.shape}")
         print(f"[COMBINING] Final class distribution:")
@@ -169,7 +178,7 @@ class NetworkTrafficClassifier:
         print(f"  Attack: {sum(y_all == 1)} ({100*sum(y_all == 1)/len(y_all):.1f}%)")
         
         # Store feature columns
-        self.feature_columns = common_cols
+        self.feature_columns = all_cols
         
         # Train-test split
         X_train, X_test, y_train, y_test = train_test_split(

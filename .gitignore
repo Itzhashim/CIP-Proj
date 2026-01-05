@@ -1,5 +1,10 @@
 # Large archives stay local unless explicitly added
 /data/*.zip
 
-# Allow CSVs tracked via Git LFS
-!/data/*.csv
+# Ignore raw datasets
+/data/*.csv
+/data/*.parquet
+/data/*.zip
+
+# Ignore Python cache artifacts
+**/__pycache__/
